@@ -10,4 +10,4 @@ Inspired by:
 ## License
 
 Licensed under the Apache License 2.0.<br>
-Copyright (c) 2026 にゃんこTools
+Copyright (c) 2026 MeowTools
