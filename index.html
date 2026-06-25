@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!--
+        Copyright 2026 MeowTools
+        Licensed under Apache-2.0
+    -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Screensaver</title>
+    <style>
+        /* ページ全体のスタイル */
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* スクロールバーを非表示 */
+            background-color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+        }
+        /* キャンバスのスタイル */
+        #canvas {
+            display: none; /* 初期状態で非表示 */
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        /* ボタンのスタイル */
+        #startButton {
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: white;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <button id="startButton">Start Screensaver</button>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        let animationId;
+
+        // ウィンドウサイズに合わせてキャンバスのサイズを調整
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // ランダムな位置と速度を持つ円の初期化
+        const minSpeed = 0.4;
+        const maxSpeed = 2.5;
+
+        let circles = [];
+        function createCircles() {
+            circles = Array.from({ length: 30 }, () => {
+                let speedX, speedY;
+
+                do {
+                    speedX = (Math.random() * (maxSpeed - minSpeed) + minSpeed)
+                        * (Math.random() < 0.5 ? 1 : -1);
+
+                    speedY = (Math.random() * (maxSpeed - minSpeed) + minSpeed)
+                        * (Math.random() < 0.5 ? 1 : -1);
+
+                } while (
+                    Math.abs(speedX) < minSpeed ||
+                    Math.abs(speedY) < minSpeed
+                ); // 最低速度を保証
+
+                return {
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 120 + 30,
+                    dx: speedX,
+                    dy: speedY,
+                    color: "rgba(230, 224, 255, 0.10)"
+                };
+            });
+        }
+
+
+        // 円を描画する関数
+        function drawCircle(circle) {
+            ctx.beginPath();
+            ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+            ctx.fillStyle = circle.color;
+            ctx.fill();
+        }
+
+        // アニメーション関数
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            circles.forEach(circle => {
+                circle.x += circle.dx;
+                circle.y += circle.dy;
+
+                // 壁に衝突したら反転
+            if (circle.x + circle.radius > canvas.width) {
+                circle.x = canvas.width - circle.radius;
+                circle.dx *= -1;
+            }
+
+            if (circle.x - circle.radius < 0) {
+                circle.x = circle.radius;
+                circle.dx *= -1;
+            }
+
+            if (circle.y + circle.radius > canvas.height) {
+                circle.y = canvas.height - circle.radius;
+                circle.dy *= -1;
+            }
+
+            if (circle.y - circle.radius < 0) {
+                circle.y = circle.radius;
+                circle.dy *= -1;
+            }
+
+                drawCircle(circle);
+            });
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // スクリーンセーバーを開始する関数
+        function startScreenSaver() {
+            document.documentElement.requestFullscreen().then(() => {
+                startButton.style.display = 'none';
+                canvas.style.display = 'block';
+                resizeCanvas();
+                createCircles();
+                animate();
+            }).catch(err => {
+                console.error("全画面表示に失敗しました:", err);
+            });
+        }
+
+        // 全画面解除時にボタンを再表示
+        document.addEventListener("fullscreenchange", () => {
+            if (!document.fullscreenElement) {
+                cancelAnimationFrame(animationId);
+                canvas.style.display = 'none';
+                startButton.style.display = 'block';
+            }
+        });
+
+        // 画面クリックで開始ボタン表示に戻る
+        document.addEventListener("click", () => {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            }
+        });
+
+        startButton.addEventListener("click", startScreenSaver);
+
+    </script>
+</body>
+</html>
