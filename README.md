@@ -1,6 +1,7 @@
 # Browser Screensaver
 
-A simple screensaver that runs in your browser.
+A simple screensaver that runs in your browser.<br>
+- https://meowtools.github.io/browser-screensaver/
 
 ## Credits
 
